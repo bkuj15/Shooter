@@ -1,0 +1,17 @@
+## How do we find cheap calls that constantly fluctuate between a few cents?
+
+
+
+1. "Buy" all the calls that are cheap (i.e. between 2 cents and 6 cents) - done
+
+2. Continually check if those calls went up or down - done
+
+3. Record for each "owned" strike, when it goes up and down - done
+
+4. Loop over output and for each strike we "own", chart the price of the call over the day
+
+5. For each chart count the amount of times the call does a full "bounce"
+
+6. If we count a lot of bounces AND its currently on the low of the bounce then actually buy the call.
+
+7. Resell when its at the top of the bounce
