@@ -3,7 +3,7 @@ import sys
 from matplotlib import pyplot as plt
 
 
-filename = "2:14nm_after.txt"
+filename = "results/12:52-1:35nm_full.txt"
 me_dict = {}
 calls = []
 bounces = []
@@ -34,21 +34,21 @@ def plot_stuff():
         j += 1
 
 
-        if (downbs > 10):
-            linestyle = 'dashed'
+        if (downbs > 5):
+            linestyle = 'solid'
             color = 'blue'
         if (downbs > 20):
-            linestyle = 'dashed'
+            linestyle = 'solid'
             color = 'purple'
         if (downbs > 30):
             linestyle = 'solid'
             color = 'green'
 
-        if (upbs > 10):
-            linestyle = 'dashed'
+        if (upbs > 5):
+            linestyle = 'solid'
             color = 'yellow'
         if (upbs > 20):
-            linestyle = 'dashed'
+            linestyle = 'solid'
             color = 'orange'
         if (upbs > 30):
             linestyle = 'solid'
@@ -206,7 +206,7 @@ def check_for_bounces(prices, symbol):
 
 def make_choices():
 
-    num_bounces = 10
+    num_bounces = 5
 
     for bounce in bounces:
         chart_json = json.loads(bounce)
@@ -245,8 +245,14 @@ def make_choices():
 
 
 def write_to_buy_targets():
-    print("\nwould check the status of buy list..\n " + str(buy_list))
-    print("\nby checking option status for..\n " + str(target_symbols))
+
+    buy_targets = "\nwould check the status of buy list >> " + str(json.dumps(buy_list))
+    buy_targets += "\nby checking option status for >> " + str(target_symbols)
+    buy_targets += "\n"
+
+    f = open("targets/buy_list.txt", "w")
+    f.write(buy_targets)
+    f.close()
 
 
 
