@@ -13,7 +13,7 @@ targets = []
 # then loop over every target we have and make sure it doesn't match
 # one of ours
 # Should probably have it take in symbol and strike price and check one target status at a time
-def check_target_status(symbol, targets):
+def check_target_status(symbol):
 
     url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
     r = requests.get(url)
@@ -48,6 +48,7 @@ def check_target_status(symbol, targets):
                 print("targets current price is: " + str(current_price_fl) + ", but target buy price: " + str(buy_price_fl))
 
                 if (current_price_fl == buy_price_fl):
+                    # write to bought file to keep track of
                     print("AYOO would buy this target option now: " + str(targ))
                 else:
                     print("nope waiting on this target still: " + str(targ))
@@ -61,7 +62,7 @@ def check_target_status(symbol, targets):
 # it was throughout the time we were logging the option price
 #
 
-def form_option_dict():
+def form_target_list():
     print(buy_filepath)
     with open(buy_filepath, "r") as a_file:
 
@@ -87,14 +88,13 @@ def form_option_dict():
 
 
 buy_filepath = "targets/buy_list.txt"
-print("parsing the buy list file: " + buy_filepath)
+print("parsing the target list file: " + buy_filepath)
 
-form_option_dict()
+form_target_list()
 
+while True:
 
-for targ in targets:
+    print("now would keep checking this: " + str(targets))
 
-    print("now would keep checking this guy: " + str(targ))
-
-
-check_target_status("SAVE", targets)
+    check_target_status("SAVE")
+    time.sleep(5)
