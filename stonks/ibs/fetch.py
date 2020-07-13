@@ -24,14 +24,20 @@ api_thread.start()
 time.sleep(1) #Sleep interval to allow time for connection to server
 
 #Create contract object
-eurusd_contract = Contract()
-eurusd_contract.symbol = 'EUR'
-eurusd_contract.secType = 'CASH'
-eurusd_contract.exchange = 'IDEALPRO'
-eurusd_contract.currency = 'USD'
+me_contract = Contract()
+me_contract.symbol = 'IBKR'
+me_contract.secType = 'STK'
+me_contract.exchange = 'ISLAND'
+me_contract.currency = 'USD'
+
+
+
 
 #Request historical candles
-app.reqHistoricalData(1, eurusd_contract, '', '2 D', '1 hour', 'BID', 0, 2, False, [])
+vals = app.reqMatchingSymbols(45, "IBM")
+
+print("some vals")
+print(vals)
 
 time.sleep(5) #sleep to allow enough time for data to be returned
 app.disconnect()
