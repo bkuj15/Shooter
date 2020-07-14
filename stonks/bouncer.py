@@ -3,7 +3,7 @@ import sys
 from matplotlib import pyplot as plt
 
 
-filename = "results/12:52-1:35nm_full.txt"
+filename = "results/1:09-2:07nm_out.txt"
 me_dict = {}
 calls = []
 bounces = []
@@ -34,7 +34,7 @@ def plot_stuff():
         j += 1
 
 
-        if (downbs > 5):
+        if (downbs > 10):
             linestyle = 'solid'
             color = 'blue'
         if (downbs > 20):
@@ -44,7 +44,7 @@ def plot_stuff():
             linestyle = 'solid'
             color = 'green'
 
-        if (upbs > 5):
+        if (upbs > 10):
             linestyle = 'solid'
             color = 'yellow'
         if (upbs > 20):
@@ -121,7 +121,7 @@ def parse_option_prices(add_flats=False):
 
                     symbol = symbol_parts.split("\"")[0]
                     strike = strike_parts.split("\"")[0]
-                    price = price_parts.split("}")[0]
+                    price = price_parts.split(",")[0]
                     diff = diff_parts.split(",")[0]
 
                     print("symbol: " + str(symbol) + ", strike: " + strike + ", price: " + price + ", diff " + diff)
@@ -228,6 +228,7 @@ def make_choices():
 
 
 
+
         if (chart_json['up_bounces'] > num_bounces):
             print("definitely should look at buying: " + str(bounce))
             symbol = chart_json['option'].split("-")[0]
@@ -246,8 +247,12 @@ def make_choices():
 
 def write_to_buy_targets():
 
+    symbol_string = ""
+    for symbol in target_symbols:
+        symbol_string += symbol + "^^"
+
     buy_targets = "\nwould check the status of buy list >> " + str(json.dumps(buy_list))
-    buy_targets += "\nby checking option status for >> " + str(target_symbols)
+    buy_targets += "\nby checking option status for >> " + symbol_string
     buy_targets += "\n"
 
     f = open("targets/buy_list.txt", "w")
@@ -277,6 +282,8 @@ for key in me_dict:
 # Loop over each options chart info to see if any are worth buying (i.e. bouncinnn)
 #
 make_choices()
+
+print("me target buy list:" + str(buy_list))
 
 
 # Loop over each target option buy to check the status and maybe buy some trash

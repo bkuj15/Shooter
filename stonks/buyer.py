@@ -8,6 +8,7 @@ import time
 
 
 targets = []
+symbs = []
 
 # This basically will check the status of all options for some symbol
 # then loop over every target we have and make sure it doesn't match
@@ -28,30 +29,50 @@ def check_target_status(symbol):
     call_strikes = call_table.find_all('td', {'class': 'data-col2'})
     call_prices = call_table.find_all('td', {'class': 'data-col3'})
 
+
     for i in range(0, len(call_dates)):
 
         date = call_dates[i].text
         strike = call_strikes[i].text
         price = call_prices[i].text
 
+
         for targ in targets:
             #targ_json = json.loads(targ)
             targ_strike = targ['strike']
             targ_symbol = targ['symbol']
 
+
             if (targ_strike == strike and symbol == targ_symbol):
 
                 current_price_fl = round(float(price), 2)
-                buy_price_fl = round(float(targ['buy_price']), 2)
+
+                bp_list = []
+                bp = targ['buy_price']
+
+                if isinstance(bp, float):
+                    bp_list.append(bp)
+                else:
+                    bp_list = list(bp)
 
                 print("\nfound some target we fake wanna buy right? " + symbol + "-" + str(strike) + " matches " + targ_symbol + "-" + targ_strike)
-                print("targets current price is: " + str(current_price_fl) + ", but target buy price: " + str(buy_price_fl))
+                #print("targets current price is: " + str(current_price_fl) + ", but target buy price: " + str(buy_price_fl))
+                print("targets current price is: " + str(current_price_fl) + ", but target buy prices: " + str(bp_list))
 
-                if (current_price_fl == buy_price_fl):
+                if (current_price_fl in bp_list):
                     # write to bought file to keep track of
                     print("AYOO would buy this target option now: " + str(targ))
-                else:
-                    print("nope waiting on this target still: " + str(targ))
+
+                    bought_opt = {
+                        'symbol':symbol,
+                        'strike': strike,
+                        'bought_price': current_price_fl,
+                        'sell_price': targ['sell_price'],
+                    }
+
+                    trigger_order(bought_opt)
+                #else:
+                #    print("nope waiting on this target still: " + str(targ))
 
 
 
@@ -69,7 +90,15 @@ def form_target_list():
         for line in a_file:
 
             stripped_line = line.strip()
-            print(line)
+
+            if "by checking option" in stripped_line:
+                parts = stripped_line.split(">> ")
+                syms = parts[1].split("^^")
+                symbols = syms[:-1]
+
+                print("ayo me parsed symbols: " + str(symbols))
+                for symbol in symbols:
+                    symbs.append(symbol)
 
             if "status of buy list" in stripped_line:
                 print("some important line: " + stripped_line)
@@ -87,14 +116,42 @@ def form_target_list():
                     targets.append(targ)
 
 
+
+
+def write_to_bought(bopt):
+
+    buy_targets = "\nfake filled order for >> " + str(json.dumps(bopt))
+    buy_targets += "\n"
+
+    f = open("holds/bought_list.txt", "a")
+    f.write(buy_targets)
+    f.close()
+
+
+def trigger_order(bopt):
+    print("would attempt to fill order for this target now: " + str(bopt))
+    write_to_bought(bopt)
+
+
+
+
 buy_filepath = "targets/buy_list.txt"
 print("parsing the target list file: " + buy_filepath)
 
+
 form_target_list()
+
 
 while True:
 
     print("now would keep checking this: " + str(targets))
+    print("by checking option status for: " + str(symbs))
 
-    check_target_status("SAVE")
+    for symb in symbs:
+        print("checking targets with symbol: " + symb)
+        check_target_status(symb)
+
+
+
+
     time.sleep(5)
