@@ -3,7 +3,7 @@ import sys
 from matplotlib import pyplot as plt
 
 
-filename = "results/1:09-2:07nm_out.txt"
+filename = ""
 me_dict = {}
 calls = []
 bounces = []
@@ -109,22 +109,22 @@ def parse_option_prices(add_flats=False):
             stripped_line = line.strip()
 
             if "price update" in stripped_line:
-                print("some important line: " + stripped_line)
 
                 try:
 
+                    print("\n\nwhole line for json: " + stripped_line)
+
+                    new_option = stripped_line.split("to: ")[1]
+                    opt_json = json.loads(new_option)
+
+                    symbol = opt_json['symbol']
+                    strike = opt_json['strike']
+                    price = opt_json['price']
+
                     diff_parts = stripped_line.split("diff: ")[1]
-
-                    symbol_parts = stripped_line.split("symbol\": \"")[1]
-                    strike_parts = stripped_line.split("strike\": \"")[1]
-                    price_parts = stripped_line.split("price\": ")[1]
-
-                    symbol = symbol_parts.split("\"")[0]
-                    strike = strike_parts.split("\"")[0]
-                    price = price_parts.split(",")[0]
                     diff = diff_parts.split(",")[0]
 
-                    print("symbol: " + str(symbol) + ", strike: " + strike + ", price: " + price + ", diff " + diff)
+                    print("symbol: " + str(symbol) + ", strike: " + str(strike) + ", price: " + str(price) + ", diff " + diff)
 
                     price_fl = round(float(price), 2)
                     diff_fl = round(float(diff), 2)
@@ -228,7 +228,6 @@ def make_choices():
 
 
 
-
         if (chart_json['up_bounces'] > num_bounces):
             print("definitely should look at buying: " + str(bounce))
             symbol = chart_json['option'].split("-")[0]
@@ -255,7 +254,11 @@ def write_to_buy_targets():
     buy_targets += "\nby checking option status for >> " + symbol_string
     buy_targets += "\n"
 
-    f = open("targets/buy_list.txt", "w")
+    now = datetime.now()
+    dt_string = now.strftime("%m-%d-%y-%H:%M:%S")
+    fpath = "targets/target_list_" + dt_string + ".txt"
+
+    f = open(fpath, "a")
     f.write(buy_targets)
     f.close()
 
@@ -263,34 +266,49 @@ def write_to_buy_targets():
 
 
 
-form_option_dict()
-parse_option_prices(True)
-print("all me calls to track: " + str(me_dict))
+
+## Main script stuff
+def main():
+
+    form_option_dict()
+    parse_option_prices(True)
+    print("all me calls to track: " + str(me_dict))
 
 
-for key in me_dict:
-    print("checking " + key + " action for bounces..")
-    chart_info = check_for_bounces(me_dict[key], key)
-    chart_json = json.loads(chart_info)
+    for key in me_dict:
+        print("checking " + key + " action for bounces..")
+        chart_info = check_for_bounces(me_dict[key], key)
+        chart_json = json.loads(chart_info)
 
-    print("chart info: " + str(chart_info))
-    print(key + " price list result -- up bounces: " + str(chart_json['up_bounces']) + ", down bounces: " + str(chart_json['down_bounces']) + "\n\n")
-    #bounces.append((upbs, downbs))
-    bounces.append(chart_info)
-
-
-# Loop over each options chart info to see if any are worth buying (i.e. bouncinnn)
-#
-make_choices()
-
-print("me target buy list:" + str(buy_list))
+        print("chart info: " + str(chart_info))
+        print(key + " price list result -- up bounces: " + str(chart_json['up_bounces']) + ", down bounces: " + str(chart_json['down_bounces']) + "\n\n")
+        #bounces.append((upbs, downbs))
+        bounces.append(chart_info)
 
 
-# Loop over each target option buy to check the status and maybe buy some trash
-#
-print("\n\nChecking status of target buys..")
-write_to_buy_targets()
+    # Loop over each options chart info to see if any are worth buying (i.e. bouncinnn)
+    #
+    make_choices()
 
-# Plot each option's price history
-#
-plot_stuff()
+    print("me target buy list:" + str(buy_list))
+
+
+    # Loop over each target option buy to check the status and maybe buy some trash
+    #
+    print("\n\nChecking status of target buys..")
+    write_to_buy_targets()
+
+    # Plot each option's price history
+    #
+    plot_stuff()
+
+
+
+if __name__ == "__main__":
+
+    if (len(sys.argv) == 2):
+        filename = sys.argv[1]
+        print("Filepath we're looking at: " + filename)
+        main()
+    else:
+        print("Sike wrong number of args: " + str(len(sys.argv)))

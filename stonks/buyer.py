@@ -10,6 +10,8 @@ import time
 targets = []
 symbs = []
 
+counter = 0
+
 # This basically will check the status of all options for some symbol
 # then loop over every target we have and make sure it doesn't match
 # one of ours
@@ -61,8 +63,6 @@ def check_target_status(symbol):
 
                 if (current_price_fl in bp_list):
                     # write to bought file to keep track of
-                    print("AYOO would buy this target option now: " + str(targ))
-
                     bought_opt = {
                         'symbol':symbol,
                         'strike': strike,
@@ -83,9 +83,9 @@ def check_target_status(symbol):
 # it was throughout the time we were logging the option price
 #
 
-def form_target_list():
-    print(buy_filepath)
-    with open(buy_filepath, "r") as a_file:
+def form_target_list(filepath):
+    print(filepath)
+    with open(filepath, "r") as a_file:
 
         for line in a_file:
 
@@ -129,29 +129,50 @@ def write_to_bought(bopt):
 
 
 def trigger_order(bopt):
-    print("would attempt to fill order for this target now: " + str(bopt))
-    write_to_bought(bopt)
+
+    global counter
+    print("AYOO would attempt to fill order for this target now: " + str(bopt))
+
+    print("counter es: " + str(counter))
+    if (counter < 2):
+        print("filling this order..")
+        counter += 1
+
+        # TODO call ibkr script to place option order next
+
+        write_to_bought(bopt)
+    else:
+        print("bruh you're goin order nuts so not doing it..")
 
 
 
 
-buy_filepath = "targets/buy_list.txt"
-print("parsing the target list file: " + buy_filepath)
+def main(fpath):
+
+    #buy_filepath = "targets/buy_list.txt"
+    print("parsing the target list file: " + fpath)
+    form_target_list(fpath)
 
 
-form_target_list()
+    while True:
+
+        print("now would keep checking this: " + str(targets))
+        print("by checking option status for: " + str(symbs))
+
+        for symb in symbs:
+            print("checking targets with symbol: " + symb)
+            check_target_status(symb)
+
+        time.sleep(5)
 
 
-while True:
-
-    print("now would keep checking this: " + str(targets))
-    print("by checking option status for: " + str(symbs))
-
-    for symb in symbs:
-        print("checking targets with symbol: " + symb)
-        check_target_status(symb)
 
 
+if __name__ == "__main__":
 
-
-    time.sleep(5)
+    if (len(sys.argv) == 2):
+        filename = sys.argv[1]
+        print("Filepath we're looking at: " + filename)
+        main(filename)
+    else:
+        print("Sike wrong number of args: " + str(len(sys.argv)))

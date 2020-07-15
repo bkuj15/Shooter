@@ -15,6 +15,7 @@ cheapos = set([])
 
 def check_call_status(symbol, calls):
 
+
     url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
     r = requests.get(url)
 
@@ -63,15 +64,8 @@ def check_call_status(symbol, calls):
                 # convert into JSON:
                 call_json = json.dumps(updated_call)
 
-                print("\ncall option price update -- diff: " + str(diff) + ", went from: " + str(call) + " to: " + str(updated_call))
+                print("\ncall option price update -- diff: " + str(diff) + ", went from: " + str(call) + " to: " + str(call_json))
                 #print("price change: " + str(diff) + " for strike: " + strike)
-
-                if (diff > 0.01):
-                    print("price went up some: " + str(diff))
-                    original_price_fl = round(float(call_original), 2)
-                    if (price_fl > original_price_fl):
-                        print("AYOO price went up and higher than original: " + str(original_price_fl) + ", current: " + str(price_fl))
-
 
                 calls.remove(call)
                 calls.add(call_json)
@@ -86,7 +80,10 @@ def check_call_status(symbol, calls):
 
 
 def buy_calls(symbol):
+
+
     url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
+    print("url to buy calls at: " + url)
     r = requests.get(url)
 
     soup = bs4.BeautifulSoup(r.text,"lxml")
@@ -162,19 +159,24 @@ def parse_price(symbol):
 print("Gonna scrap some sheet now..")
 
 
-stocks = ['AAPL', 'FB', 'SNAP', 'CAKE']
+stocks = ['AEO', 'LUV', 'SNAP', 'SAVE']
 bought_calls = []
+found_stocks = []
 
 scrape_round = 1
 
 
 for stock in stocks:
-    print('ayo scanning for ' + stock)
+    print('\n\nayo scanning for ' + stock)
     try:
         buys = buy_calls(stock)
         bought_calls.append(buys)
+        found_stocks.append(stock)
     except:
         print("something went wrong getting calls for: " + stock)
+        e = sys.exc_info()[0]
+        v = sys.exc_info()[1]
+        print("uh oh something went wrong parsing the lines " + str(e) + ", val:" + str(v))
 
 
 
@@ -182,20 +184,27 @@ for stock in stocks:
 # to see if the price has changed at all
 #
 
+
+print("all me stocks: " + str(found_stocks))
+print("all bought calls: " + str(bought_calls))
+
+print("stock length: " + str(len(found_stocks)) + "vs call length: " + str(len(bought_calls)))
+
 while True:
 
     print("\n\n***** Starting scan round " + str(scrape_round) + " *****")
 
-    for num in range(0, len(stocks)):
+    for num in range(0, len(found_stocks)):
 
-        symbol = stocks[num]
+        symbol = found_stocks[num]
         me_calls = bought_calls[num]
         print("\n\nRound " + str(scrape_round) + " option scan for " + symbol)
         try:
             check_call_status(symbol, me_calls)
         except:
             e = sys.exc_info()[0]
-            print("some exception when updating call " + symbol + ": " + str(e))
+            v = sys.exc_info()[1]
+            print("some exception when updating call " + symbol + ": " + str(e) + ", val:" + str(v))
 
 
 
