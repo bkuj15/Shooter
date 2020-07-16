@@ -1,0 +1,14 @@
+
+fake sold order for: {"bought_price": 0.05, "symbol": "AAPL", "sell_price": 0.05, "strike": "410.00"}
+
+fake sold order for: {"bought_price": 0.05, "symbol": "AAPL", "sell_price": 0.05, "strike": "410.00"}
+
+fake sold order for: {"bought_price": 0.05, "symbol": "AAPL", "sell_price": 0.05, "strike": "410.00"}
+
+fake sold order for: {"bought_price": 0.05, "sell_price": 0.05, "strike": "410.00", "symbol": "AAPL"}
+
+fake sold order for: {"sell_price": [0.3, 0.27, 0.29, 0.28, 0.31], "symbol": "SNAP", "strike": "24.00", "bought_price": 0.27}
+
+fake sold order for: {}
+
+fake sold order for: {}

@@ -6,10 +6,14 @@ import bs4
 import requests
 from bs4 import BeautifulSoup
 import time
+import os
+from datetime import datetime
 
 
 holds = []
 hold_symbols = set([])
+filename = ""
+start_time = datetime.now().strftime("%m-%d-%y-%H:%M:%S")
 
 # This basically will check the status of all options for some symbol
 # then loop over every target we have and make sure it doesn't match
@@ -56,21 +60,20 @@ def check_target_status(symbol):
                 else:
                     sp_list = list(sp)
 
-                print("\nfound some hold we fake wanna sell right? " + symbol + "-" + str(strike) + " matches " + hold_symbol + "-" + hold_strike)
-                print("holds current price is: " + str(current_price_fl) + ", but holds sell prices: " + str(sp_list))
+                print("found hold w current price: " + str(current_price_fl) + ", but sell prices: " + str(sp_list))
 
                 if (current_price_fl in sp_list):
                     # write to bought file to keep track of
-                    print("AYOO would sell this hold option now: " + str(targ))
-                    '''
+                    print("AYOO would sell this hold option now: " + str(hold))
+
                     sell_opt = {
                         'symbol':symbol,
                         'strike': strike,
                         'bought_price': current_price_fl,
-                        'sell_price': targ['sell_price'],
+                        'sell_price': hold['sell_price'],
                     }
 
-                    trigger_order(bought_opt)'''
+                    trigger_order(sell_opt, hold)
                 else:
                     print("nope waiting on this hold sell price still: " + str(hold))
 
@@ -83,15 +86,16 @@ def check_target_status(symbol):
 # it was throughout the time we were logging the option price
 #
 
-def form_bought_list():
-    print(bought_filepath)
-    with open(bought_filepath, "r") as a_file:
+def form_bought_list(fpath):
+    #print(bought_filepath)
+    with open(fpath, "r") as a_file:
 
         for line in a_file:
 
             stripped_line = line.strip()
 
-            if "fake filled order for" in stripped_line:
+
+            if "filled order for" in stripped_line:
                 #print("some important line: " + stripped_line)
 
                 parts = stripped_line.split(">> ")
@@ -114,33 +118,84 @@ def write_to_sold(sopt):
     sells = "\nfake sold order for: " + str(json.dumps(sopt))
     sells += "\n"
 
+    now = datetime.now()
+
+    print("fed in target file was: " + filename)
+    # get the date piece from the passed in scan data file
+    # so we know when the targets were taken from
+    #
+    fileparts = filename.split("/")
+    file_end = fileparts[2]
+    chart_date = file_end.split("_")[2]
+
+
+    day_string = now.strftime("%m-%d-%y")
+
+    os.system("mkdir -p holds/" + day_string)
+    fpath = "sells/" + day_string + "/sold_list_st-" + start_time + "_tl-" + chart_date + ".txt"
+
+    print("writing out sold list to: " + fpath)
+
     f = open("sells/sold_list.txt", "a")
     f.write(sells)
     f.close()
 
 
-def trigger_order(sopt):
-    print("would attempt to sell  order for this hold now: " + str(sopt))
+def trigger_order(sopt, hold):
+
+    print("triggering order to sell this hold now: " + str(sopt))
+
+    cmd = "cd ibs && python3 sell.py " + sopt['symbol'] + " " + sopt['strike'] + " C"
+    os.system(cmd)
+
     write_to_sold(sopt)
+    holds.remove(hold)
 
 
 
 
-bought_filepath = "holds/bought_list.txt"
-print("parsing the bought list file: " + bought_filepath)
 
 
-form_bought_list()
 
 
-while True:
 
-    print("now would keep checking this: " + str(holds))
-    print("by checking option status for: " + str(hold_symbols))
+def main(fpath):
 
-    for symb in hold_symbols:
-        print("checking holds with symbol: " + symb)
-        check_target_status(symb)
+    print("parsing the bought list file: " + fpath)
+    form_bought_list(fpath)
+
+    print("all me holds after parse: " + str(holds))
 
 
-    time.sleep(5)
+    write_to_sold({})
+
+    while False:#len(holds) > 0:
+
+        print("now would keep checking this: " + str(holds))
+        print("by checking option status for: " + str(hold_symbols))
+
+        for symb in hold_symbols:
+            print("checking holds with symbol: " + symb)
+            try:
+                check_target_status(symb)
+            except:
+                e = sys.exc_info()[0]
+                v = sys.exc_info()[1]
+                print("uh oh something went wrong checking hold status " + str(e) + ", val:" + str(v))
+
+
+        time.sleep(5)
+
+    print("Finished handling all the holds from: " + fpath)
+
+
+
+
+if __name__ == "__main__":
+
+    if (len(sys.argv) == 2):
+        filename = sys.argv[1]
+        print("Filepath we're looking at: " + filename)
+        main(filename)
+    else:
+        print("Sike wrong number of args: " + str(len(sys.argv)))

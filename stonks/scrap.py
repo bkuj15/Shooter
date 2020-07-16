@@ -159,7 +159,7 @@ def parse_price(symbol):
 print("Gonna scrap some sheet now..")
 
 
-stocks = ['AEO', 'LUV', 'SNAP', 'SAVE']
+stocks = ['AAPL', 'GM', 'SNAP', 'BCS', 'LUV']
 bought_calls = []
 found_stocks = []
 
@@ -208,5 +208,5 @@ while True:
 
 
 
-    time.sleep(10)
+    time.sleep(3)
     scrape_round += 1

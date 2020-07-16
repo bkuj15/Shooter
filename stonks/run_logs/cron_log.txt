@@ -1,0 +1,135 @@
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-06:00:01
+adding to file:  results/07-16-2020/07-16-2020-06:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-06:15:01
+adding to file:  results/07-16-2020/07-16-2020-06:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-06:30:01
+adding to file:  results/07-16-2020/07-16-2020-06:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-06:45:01
+adding to file:  results/07-16-2020/07-16-2020-06:45:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-07:00:01
+adding to file:  results/07-16-2020/07-16-2020-07:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-07:15:01
+adding to file:  results/07-16-2020/07-16-2020-07:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-07:30:01
+adding to file:  results/07-16-2020/07-16-2020-07:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-07:45:02
+adding to file:  results/07-16-2020/07-16-2020-07:45:02_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-08:00:01
+adding to file:  results/07-16-2020/07-16-2020-08:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-08:15:01
+adding to file:  results/07-16-2020/07-16-2020-08:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-08:30:01
+adding to file:  results/07-16-2020/07-16-2020-08:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-08:45:01
+adding to file:  results/07-16-2020/07-16-2020-08:45:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-09:00:01
+adding to file:  results/07-16-2020/07-16-2020-09:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-09:15:01
+adding to file:  results/07-16-2020/07-16-2020-09:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-09:30:01
+adding to file:  results/07-16-2020/07-16-2020-09:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-09:45:01
+adding to file:  results/07-16-2020/07-16-2020-09:45:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-10:00:01
+adding to file:  results/07-16-2020/07-16-2020-10:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-10:15:01
+adding to file:  results/07-16-2020/07-16-2020-10:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-10:30:01
+adding to file:  results/07-16-2020/07-16-2020-10:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-10:45:01
+adding to file:  results/07-16-2020/07-16-2020-10:45:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-11:00:01
+adding to file:  results/07-16-2020/07-16-2020-11:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-11:15:01
+adding to file:  results/07-16-2020/07-16-2020-11:15:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-11:30:01
+adding to file:  results/07-16-2020/07-16-2020-11:30:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-11:42:01
+adding to file:  results/07-16-2020/07-16-2020-11:42:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-12:00:01
+adding to file:  results/07-16-2020/07-16-2020-12:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-13:00:01
+adding to file:  results/07-16-2020/07-16-2020-13:00:01_nmout.txt
+Finished running scrap on cron..
+
+Ending old ongoing scrape programs..
+Fetching current options info at 07-16-2020-14:00:01
+adding to file:  results/07-16-2020/07-16-2020-14:00:01_nmout.txt
+Finished running scrap on cron..
+

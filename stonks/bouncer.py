@@ -1,6 +1,8 @@
 import json
 import sys
 from matplotlib import pyplot as plt
+from datetime import datetime
+import os
 
 
 filename = ""
@@ -22,6 +24,8 @@ def plot_stuff():
         #call = calls[num]
         me_list = me_dict[key]
 
+        line_max = max(me_list)
+
         chart_info = bounces[j]
         chart_json = json.loads(chart_info)
 
@@ -34,7 +38,7 @@ def plot_stuff():
         j += 1
 
 
-        if (downbs > 10):
+        if (downbs > 5):
             linestyle = 'solid'
             color = 'blue'
         if (downbs > 20):
@@ -44,7 +48,7 @@ def plot_stuff():
             linestyle = 'solid'
             color = 'green'
 
-        if (upbs > 10):
+        if (upbs > 5):
             linestyle = 'solid'
             color = 'yellow'
         if (upbs > 20):
@@ -58,7 +62,9 @@ def plot_stuff():
         #print("hmm this one to plot had downs: " + str(downbs) + ", ups: " + str(upbs) + " and color: " + color)
         #print("would plot: " + str(me_list))
         #plt.plot(me_list)
-        plt.plot(me_list, label=option, linestyle=linestyle, color=color)
+
+        if line_max < 0.1:
+            plt.plot(me_list, label=option, linestyle=linestyle, color=color)
 
     plt.xlabel("Time")
     plt.ylabel("Call price")
@@ -155,6 +161,7 @@ def parse_option_prices(add_flats=False):
 def check_for_bounces(prices, symbol):
 
     print("checking this list for bounces: " + str(prices))
+    print("lenght of price list: " + str(len(prices)))
 
 
     most_price = max(prices, key=prices.count)
@@ -254,9 +261,22 @@ def write_to_buy_targets():
     buy_targets += "\nby checking option status for >> " + symbol_string
     buy_targets += "\n"
 
+
+    # get the date piece from the passed in scan data file
+    # so we know when the targets were taken from
+    #
+    fileparts = filename.split("/")
+    file_end = fileparts[2]
+    chart_date = file_end.split("_")[0]
+
     now = datetime.now()
     dt_string = now.strftime("%m-%d-%y-%H:%M:%S")
-    fpath = "targets/target_list_" + dt_string + ".txt"
+    day_string = now.strftime("%m-%d-%y")
+
+    os.system("mkdir -p targets/" + day_string)
+    fpath = "targets/" + day_string + "/target_list_" + chart_date + ".txt"
+
+    print("writing target file to: " + fpath)
 
     f = open(fpath, "a")
     f.write(buy_targets)

@@ -1,0 +1,3 @@
+
+would check the status of buy list >> []
+by checking option status for >> 

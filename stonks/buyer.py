@@ -5,12 +5,17 @@ import bs4
 import requests
 from bs4 import BeautifulSoup
 import time
+import os
+from datetime import datetime
 
 
 targets = []
 symbs = []
 
+filename = ""
+
 counter = 0
+start_time = datetime.now().strftime("%m-%d-%y-%H:%M:%S")
 
 # This basically will check the status of all options for some symbol
 # then loop over every target we have and make sure it doesn't match
@@ -120,10 +125,29 @@ def form_target_list(filepath):
 
 def write_to_bought(bopt):
 
-    buy_targets = "\nfake filled order for >> " + str(json.dumps(bopt))
+    buy_targets = "\nfilled order for >> " + str(json.dumps(bopt))
     buy_targets += "\n"
 
-    f = open("holds/bought_list.txt", "a")
+    now = datetime.now()
+
+    print("fed in target file was: " + filename)
+    # get the date piece from the passed in scan data file
+    # so we know when the targets were taken from
+    #
+    fileparts = filename.split("/")
+    file_end = fileparts[2]
+    chart_date = file_end.split("_")[2]
+    cd = chart_date.split(".txt")[0]
+
+
+    day_string = now.strftime("%m-%d-%y")
+
+    os.system("mkdir -p holds/" + day_string)
+    fpath = "holds/" + day_string + "/bought_list_st-" + start_time + "_tl-" + cd + ".txt"
+
+    print("writing out bought list to: " + fpath)
+
+    f = open(fpath, "a")
     f.write(buy_targets)
     f.close()
 
@@ -138,7 +162,8 @@ def trigger_order(bopt):
         print("filling this order..")
         counter += 1
 
-        # TODO call ibkr script to place option order next
+        cmd = "cd ibs && python3 order.py " + bopt['symbol'] + " " + bopt['strike'] + " C"
+        os.system(cmd)
 
         write_to_bought(bopt)
     else:

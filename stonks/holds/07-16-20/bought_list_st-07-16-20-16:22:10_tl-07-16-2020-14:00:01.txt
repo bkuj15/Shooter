@@ -1,0 +1,4 @@
+
+filled order for >> {"symbol": "LUV", "bought_price": 0.01, "sell_price": [0.03], "strike": "38.50"}
+
+filled order for >> {"symbol": "AAPL", "bought_price": 0.05, "sell_price": [0.06], "strike": "410.00"}
