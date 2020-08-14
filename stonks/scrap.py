@@ -16,7 +16,7 @@ cheapos = set([])
 def check_call_status(symbol, calls):
 
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1597363200"
     r = requests.get(url)
 
     soup = bs4.BeautifulSoup(r.text,"lxml")
@@ -82,7 +82,7 @@ def check_call_status(symbol, calls):
 def buy_calls(symbol):
 
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1597363200"
     print("url to buy calls at: " + url)
     r = requests.get(url)
 
@@ -111,7 +111,7 @@ def buy_calls(symbol):
 
         round_price = round(float(price), 2)
 
-        if (float(round_price) < 0.5 and float(round_price) > 0.01):
+        if (float(round_price) < 0.3 and float(round_price) > 0.00):
 
             # a Python object (dict):
             call = {
@@ -131,9 +131,9 @@ def buy_calls(symbol):
 
         #print("some call --> date: " + date + ", strike: " +" strike + ", " + price)
 
-    print("would buy these foos..")
+    #print("would buy these foos..")
     for option in calls:
-        print("fake purchased call strike at: " + option)
+        print("watching call strike at: " + option)
 
     return calls
 
@@ -159,7 +159,7 @@ def parse_price(symbol):
 print("Gonna scrap some sheet now..")
 
 
-stocks = ['AAPL', 'GM', 'SNAP', 'BCS', 'LUV']
+stocks = ['AAPL', 'PENN', 'SNAP', 'DKNG', 'LUV', 'TSLA']
 bought_calls = []
 found_stocks = []
 

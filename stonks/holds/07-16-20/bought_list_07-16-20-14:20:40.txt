@@ -1,4 +1,0 @@
-
-filled order for >> {"strike": "24.00", "symbol": "SNAP", "bought_price": 0.26, "sell_price": [0.3, 0.27, 0.29, 0.28, 0.31]}
-
-filled order for >> {"strike": "24.50", "symbol": "SNAP", "bought_price": 0.13, "sell_price": [0.14]}

@@ -13,6 +13,7 @@ from datetime import datetime
 holds = []
 hold_symbols = set([])
 filename = ""
+
 start_time = datetime.now().strftime("%m-%d-%y-%H:%M:%S")
 
 # This basically will check the status of all options for some symbol
@@ -21,7 +22,7 @@ start_time = datetime.now().strftime("%m-%d-%y-%H:%M:%S")
 # Should probably have it take in symbol and strike price and check one target status at a time
 def check_target_status(symbol):
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=date=1597363200"
     r = requests.get(url)
 
     soup = bs4.BeautifulSoup(r.text,"lxml")
@@ -69,8 +70,8 @@ def check_target_status(symbol):
                     sell_opt = {
                         'symbol':symbol,
                         'strike': strike,
-                        'bought_price': current_price_fl,
-                        'sell_price': hold['sell_price'],
+                        'bought_price': hold['bought_price'],
+                        'sell_price': current_price_fl,
                     }
 
                     trigger_order(sell_opt, hold)
@@ -145,7 +146,9 @@ def trigger_order(sopt, hold):
 
     print("triggering order to sell this hold now: " + str(sopt))
 
-    cmd = "cd ibs && python3 sell.py " + sopt['symbol'] + " " + sopt['strike'] + " C"
+    limit_pr = sopt['sell_price']
+
+    cmd = "cd ibs && python3 sell.py " + sopt['symbol'] + " " + sopt['strike'] + " C " + str(limit_pr)
     os.system(cmd)
 
     write_to_sold(sopt)
@@ -167,11 +170,9 @@ def main(fpath):
     print("all me holds after parse: " + str(holds))
 
 
-    write_to_sold({})
+    while len(holds) > 0:
 
-    while False:#len(holds) > 0:
-
-        print("now would keep checking this: " + str(holds))
+        print("\n\nnow would keep checking these holds: " + str(holds))
         print("by checking option status for: " + str(hold_symbols))
 
         for symb in hold_symbols:

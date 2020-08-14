@@ -3,6 +3,7 @@ import sys
 from matplotlib import pyplot as plt
 from datetime import datetime
 import os
+import smtplib
 
 
 filename = ""
@@ -13,16 +14,26 @@ bounces = []
 buy_list = []
 target_symbols = set([])
 
+bounce_min = 0
+max_price = 0.1
 
 
 
 
-def plot_stuff():
+
+def plot_stuff(label_list):
     j = 0
+
+    print("max price for plot is: " + str(max_price) + " and min bounce: " + str(bounce_min))
 
     for key in me_dict:
         #call = calls[num]
         me_list = me_dict[key]
+
+        label_x = 5#label_list[j]
+        #label_y = me_list[j]
+        label_y = 10
+
 
         line_max = max(me_list)
 
@@ -63,8 +74,11 @@ def plot_stuff():
         #print("would plot: " + str(me_list))
         #plt.plot(me_list)
 
-        if line_max < 0.1:
+
+
+        if line_max < max_price and (downbs > bounce_min or upbs > bounce_min):
             plt.plot(me_list, label=option, linestyle=linestyle, color=color)
+            plt.text(label_x, label_y, '{i}'.format(i=option), fontsize=6,  bbox=dict(facecolor='blue', alpha=0.5))
 
     plt.xlabel("Time")
     plt.ylabel("Call price")
@@ -282,9 +296,30 @@ def write_to_buy_targets():
     f.write(buy_targets)
     f.close()
 
+    send_alert(fpath)
 
 
 
+
+
+
+def send_alert(fpath):
+
+    # Establish a secure session with gmail's outgoing SMTP server using your gmail account
+    server = smtplib.SMTP( "smtp.gmail.com", 587 )
+    server.starttls()
+
+    server.login( 'bkuj15@gmail.com', 'Fresh0909*' )
+
+    alert_str = "Ayoo we just found " + str(len(buy_list)) + " targets..\n"
+    alert_str += "and wrote to file: " + fpath + "\n\n"
+    alert_str += str(json.dumps(buy_list))
+
+    subj = "Subject: Poco loco en stonks\n\n"
+    msg = alert_str
+
+    # Send text message through SMS gateway of destination number
+    server.sendmail( 'bkuj15@gmail.com', 'beaukuj@gmail.com', subj + msg )
 
 
 ## Main script stuff
@@ -313,14 +348,30 @@ def main():
     print("me target buy list:" + str(buy_list))
 
 
-    # Loop over each target option buy to check the status and maybe buy some trash
-    #
-    print("\n\nChecking status of target buys..")
-    write_to_buy_targets()
+    if len(buy_list) > 0:
+        # Loop over each target option buy to check the status and maybe buy some trash
+        #
+        print("\n\nChecking status of target buys..")
+        write_to_buy_targets()
+    else:
+        print("\n\nThere were no target buys so not writing to target file...")
 
     # Plot each option's price history
     #
-    plot_stuff()
+
+    label_list = []
+
+    max_x = len(next(iter(me_dict.values())))
+
+    incr = round(max_x / len(me_dict))
+
+    print('me real max x is:  ' + str(max_x))
+    print("me incr is:" + str(incr))
+
+    for num in range(0, max_x, incr):
+        #print("me list: " + str(me_list))
+        label_list.append(num)
+    plot_stuff(label_list)
 
 
 
@@ -329,6 +380,12 @@ if __name__ == "__main__":
     if (len(sys.argv) == 2):
         filename = sys.argv[1]
         print("Filepath we're looking at: " + filename)
+        main()
+    elif (len(sys.argv) == 4):
+        filename = sys.argv[1]
+        bounce_min = int(sys.argv[2])
+        max_price = float(sys.argv[3])
+        print("Filepath we're looking at: " + filename + " with min bounce: " + str(bounce_min) + " and max opt price: " + str(max_price))
         main()
     else:
         print("Sike wrong number of args: " + str(len(sys.argv)))

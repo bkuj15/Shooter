@@ -23,7 +23,7 @@ start_time = datetime.now().strftime("%m-%d-%y-%H:%M:%S")
 # Should probably have it take in symbol and strike price and check one target status at a time
 def check_target_status(symbol):
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1594944000"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=&date=1597363200"
     r = requests.get(url)
 
     soup = bs4.BeautifulSoup(r.text,"lxml")
@@ -66,18 +66,20 @@ def check_target_status(symbol):
                 #print("targets current price is: " + str(current_price_fl) + ", but target buy price: " + str(buy_price_fl))
                 print("targets current price is: " + str(current_price_fl) + ", but target buy prices: " + str(bp_list))
 
-                if (current_price_fl in bp_list):
-                    # write to bought file to keep track of
-                    bought_opt = {
-                        'symbol':symbol,
-                        'strike': strike,
-                        'bought_price': current_price_fl,
-                        'sell_price': targ['sell_price'],
-                    }
+                for price in bp_list:
+                    if current_price_fl <= price:
 
-                    trigger_order(bought_opt)
-                #else:
-                #    print("nope waiting on this target still: " + str(targ))
+                        print("ayo gonna buy this since current price:" + str(current_price_fl)  + " and bp price was: " + str(price))
+
+                        bought_opt = {
+                            'symbol':symbol,
+                            'strike': strike,
+                            'bought_price': current_price_fl,
+                            'sell_price': targ['sell_price'],
+                        }
+
+                        trigger_order(bought_opt, targ)
+
 
 
 
@@ -152,7 +154,7 @@ def write_to_bought(bopt):
     f.close()
 
 
-def trigger_order(bopt):
+def trigger_order(bopt, targ):
 
     global counter
     print("AYOO would attempt to fill order for this target now: " + str(bopt))
@@ -161,11 +163,15 @@ def trigger_order(bopt):
     if (counter < 2):
         print("filling this order..")
         counter += 1
+        limit_pr = bopt['bought_price']
 
-        cmd = "cd ibs && python3 order.py " + bopt['symbol'] + " " + bopt['strike'] + " C"
+        print("target buy price or me limit? " + str(limit_pr))
+
+        cmd = "cd ibs && python3 order.py " + bopt['symbol'] + " " + bopt['strike'] + " C " + str(limit_pr)
         os.system(cmd)
 
         write_to_bought(bopt)
+        targets.remove(targ)
     else:
         print("bruh you're goin order nuts so not doing it..")
 
@@ -178,15 +184,24 @@ def main(fpath):
     print("parsing the target list file: " + fpath)
     form_target_list(fpath)
 
+    time.sleep(2)
 
-    while True:
+    while len(targets) > 0:
 
         print("now would keep checking this: " + str(targets))
         print("by checking option status for: " + str(symbs))
 
         for symb in symbs:
             print("checking targets with symbol: " + symb)
-            check_target_status(symb)
+
+
+            try:
+                check_target_status(symb)
+            except:
+                e = sys.exc_info()[0]
+                v = sys.exc_info()[1]
+                print("some exception when checking targ status " + symb + ": " + str(e) + ", val:" + str(v))
+
 
         time.sleep(5)
 

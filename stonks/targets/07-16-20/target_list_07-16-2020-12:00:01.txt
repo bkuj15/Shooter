@@ -1,3 +1,0 @@
-
-would check the status of buy list >> [{"sell_price": [0.07], "buy_price": 0.06, "symbol": "AAPL", "strike": "410.00"}, {"sell_price": 0.05, "buy_price": [0.04], "symbol": "AAPL", "strike": "415.00"}, {"sell_price": 0.03, "buy_price": [0.02, 0.01], "symbol": "SNAP", "strike": "26.00"}]
-by checking option status for >> SNAP^^AAPL^^

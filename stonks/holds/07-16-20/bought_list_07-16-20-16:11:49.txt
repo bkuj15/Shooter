@@ -1,2 +1,0 @@
-
-filled order for >> {"symbol": "LUV", "bought_price": 0.01, "strike": "38.50", "sell_price": [0.03]}

@@ -1,2 +1,0 @@
-
-fake filled order for >> {"strike": "400.00", "bought_price": 0.22, "sell_price": [0.23], "symbol": "AAPL"}
