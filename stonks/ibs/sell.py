@@ -69,22 +69,22 @@ class IBapi(EWrapper, EClient):
 
 
 
-def form_order(limit):
+def form_order(limit, amount):
     # Fills out the order object
     order1 = Order()    # Creates an order object from the import
     order1.action = "SELL"   # Sets the order action to buy
     order1.orderType = "LMT"    # Sets order type to market buy
     order1.transmit = True
-    order1.totalQuantity = 10   # Setting a static quantity of 10
+    order1.totalQuantity = amount   # Setting a static quantity
     order1.lmtPrice = limit
     return order1   # Returns the order object
 
-def order_option(id, symbol, strike, type, limit, end_date):
+def order_option(id, symbol, strike, type, limit, end_date, amount):
     print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + type + "-" + end_date + "\n\n")
 
 	#Places the order with the returned contract and order objects
     contractObject = form_option_contract(symbol, strike, type, end_date)
-    orderObject = form_order(limit)
+    orderObject = form_order(limit, amount)
     nextID = id
     app.placeOrder(nextID, contractObject, orderObject)
     print("order was placed")
@@ -112,7 +112,7 @@ def run_loop():
 
 ## Main script stuff
 
-def main(symbol, con_strike, op_type, price_limit):
+def main(symbol, con_strike, op_type, price_limit, exp_date, quantity):
 
 	print("Connecting to api..")
 	app.connect('127.0.0.1', 7497, 123)
@@ -133,18 +133,15 @@ def main(symbol, con_strike, op_type, price_limit):
 			time.sleep(1)
 
 
-	#app.nextorderId += 1
-	#print("\n\ntrying to get account info..")
-	#app.get_accounts(app.nextorderId)
-	#time.sleep(5)
 
 	strike = round(float(con_strike), 2)
 	limit = float(price_limit)
-	end_date = "20200821"
-	print("\n\nMaking option order to sell for " + symbol + "-" + str(strike) + "-" + op_type + " with limit: " + str(limit) + " expiring " + end_date)
+	quant = int(quantity)
+	end_date = exp_date
+	print("\n\nMaking option order for "  + str(quantity) + " sells of " + symbol + "-" + str(strike) + "-" + op_type + " with limit: " + str(limit) + " expiring " + end_date)
 
 	app.nextorderId += 1
-	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date)
+	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date, quant)
 	time.sleep(2)
 
 	#Cancel order
@@ -163,13 +160,15 @@ if __name__ == "__main__":
 
     print("\n\nargs given to seller " + str(sys.argv))
 
-    if (len(sys.argv) == 5):
+    if (len(sys.argv) == 7):
         symbol = sys.argv[1]
         strike = sys.argv[2]
         typ = sys.argv[3]
         limit = sys.argv[4]
+        exp_date = sys.argv[5]
+        quantity = sys.argv[6]
 
-        main(symbol, strike, typ, limit)
+        main(symbol, strike, typ, limit, exp_date, quantity)
     else:
         print("Sike wrong number of args: " + str(len(sys.argv)))
-        print("Expected: symbol, strike, type (C or P), limit (minimum price we would sell option for)")
+        print("Expected: symbol, strike, type (C or P), limit (minimum price we would sell option for), exp-date (i.e. 20200911), quantity")

@@ -16,7 +16,7 @@ cheapos = set([])
 def check_call_status(symbol, calls):
 
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1597363200"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1600992000"
     r = requests.get(url)
 
     soup = bs4.BeautifulSoup(r.text,"lxml")
@@ -82,7 +82,7 @@ def check_call_status(symbol, calls):
 def buy_calls(symbol):
 
 
-    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1597363200"
+    url = "https://finance.yahoo.com/quote/" + symbol + "/options?p=" + symbol + "&date=1600992000"
     print("url to buy calls at: " + url)
     r = requests.get(url)
 

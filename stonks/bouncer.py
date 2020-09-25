@@ -16,7 +16,7 @@ target_symbols = set([])
 
 bounce_min = 0
 max_price = 0.1
-
+alerting = True
 
 
 
@@ -49,6 +49,12 @@ def plot_stuff(label_list):
         j += 1
 
 
+        #if (option == "AAPL-130.00"):
+        #    linestyle = 'solid'
+        #    color = 'orange'
+
+
+
         if (downbs > 5):
             linestyle = 'solid'
             color = 'blue'
@@ -72,14 +78,17 @@ def plot_stuff(label_list):
 
         #print("hmm this one to plot had downs: " + str(downbs) + ", ups: " + str(upbs) + " and color: " + color)
         #print("would plot: " + str(me_list))
-        #plt.plot(me_list)
-
-
-
-        if line_max < max_price and (downbs > bounce_min or upbs > bounce_min):
+        if line_max < max_price and (downbs >= bounce_min or upbs >= bounce_min):
             plt.plot(me_list, label=option, linestyle=linestyle, color=color)
             plt.text(label_x, label_y, '{i}'.format(i=option), fontsize=6,  bbox=dict(facecolor='blue', alpha=0.5))
 
+
+
+
+        '''if line_max < max_price and (downbs > bounce_min or upbs > bounce_min):
+            plt.plot(me_list, label=option, linestyle=linestyle, color=color)
+            plt.text(label_x, label_y, '{i}'.format(i=option), fontsize=6,  bbox=dict(facecolor='blue', alpha=0.5))
+    '''
     plt.xlabel("Time")
     plt.ylabel("Call price")
     plt.legend(loc='upper right', prop={'size': 8})
@@ -242,6 +251,7 @@ def make_choices():
                 'strike': strike,
                 'buy_price': chart_json['floors'],
                 'sell_price': chart_json['mode_price'],
+                'bounces' : chart_json['down_bounces']
             }
 
             buy_list.append(target_buy)
@@ -259,22 +269,47 @@ def make_choices():
                 'strike': strike,
                 'buy_price': chart_json['mode_price'],
                 'sell_price': chart_json['ceilings'],
+                'bounces' : chart_json['up_bounces']
             }
 
             buy_list.append(target_buy)
             target_symbols.add(symbol)
 
 
+
+def form_check_list(filepath):
+    print(filepath)
+    seen_targets = []
+
+    with open(filepath, "r") as a_file:
+
+        for line in a_file:
+            stripped_line = line.strip()
+
+            if "status of buy list" in stripped_line:
+                print("some important line: " + stripped_line)
+
+                parts = stripped_line.split(">> ")
+                targs = parts[1]
+
+                targets_json = json.loads(targs)
+
+                for targ in targets_json:
+                    symb = targ['symbol']
+
+
+                    if targ not in seen_targets:
+                        #print("some targ i'm adding to set: " + str(targ))
+                        seen_targets.append(targ)
+                    else:
+                        print("sike seen em")
+
+
+    return seen_targets
+
+
+
 def write_to_buy_targets():
-
-    symbol_string = ""
-    for symbol in target_symbols:
-        symbol_string += symbol + "^^"
-
-    buy_targets = "\nwould check the status of buy list >> " + str(json.dumps(buy_list))
-    buy_targets += "\nby checking option status for >> " + symbol_string
-    buy_targets += "\n"
-
 
     # get the date piece from the passed in scan data file
     # so we know when the targets were taken from
@@ -290,13 +325,98 @@ def write_to_buy_targets():
     os.system("mkdir -p targets/" + day_string)
     fpath = "targets/" + day_string + "/target_list_" + chart_date + ".txt"
 
-    print("writing target file to: " + fpath)
+    update_path = "targets/" + day_string + "/update_log_" + chart_date + ".txt"
 
-    f = open(fpath, "a")
-    f.write(buy_targets)
-    f.close()
+    ### if the target file does not exist then just create it
+    # and dump out targets in there
 
-    send_alert(fpath)
+    ### else if it does exist then parse the json and check for any new changes?
+    #
+
+    if os.path.exists(fpath):
+        old_targs = form_check_list(fpath)
+
+        ## Check if there are any differences between the old targets in that file
+        # and the new targets we just calculated
+
+        ## if so then write it out to
+
+        print("\n\nhmm heres old me old targs to check:  " + str(old_targs))
+        for targ in buy_list:
+
+            if targ not in old_targs:
+                index = 0
+
+                print("AYO heres a bounce target that was not in old targets: " + str(targ))
+
+                ## find the old value it changed from
+                found = False
+                for old_targ in old_targs:
+
+                    if old_targ["strike"] == targ["strike"] and old_targ["symbol"] == targ["symbol"]:
+
+                        found = True
+                        update_line = "some target changed from " + str(old_targ) + " to " + str(targ) + "\n\n"
+                        print(update_line)
+
+                        bounce_diff = targ["bounces"] - old_targ["bounces"]
+
+                        # if the same contract has more than 2 bounces than last time we checked, then
+                        # its 'actively' bouncing?
+                        # fix: watch out for bug that depending on if its counting down bounces
+                        # or up bounces the count of bounces may be different
+
+                        #print(update_line)
+                        f = open(fpath, "a")
+                        f.write(update_line)
+                        f.close()
+
+                        if (bounce_diff > 2):
+                            print("definitely should look at this update: " + str(targ))
+
+                            # replace the old target in json so we can look for
+                            # new updates but record the active bounce time and log in file
+
+                            old_targs[index] = targ
+
+                            print("\n\nold targs after update: " + str(old_targs))
+                            f = open(update_path, "a")
+                            f.write("\n\nwould check the status of buy list >>" + old_targs)
+                            f.close()
+
+                    index += 1
+
+                if not found: # this is a new target contract we haven't seen yet so append to the list
+                    old_targs.append(targ)
+
+
+
+        print("\n\nre-writing targs after recheck: " + str(old_targs))
+        f = open(fpath, "w")
+        f.write("\n\nwould check the status of buy list >> " + str(json.dumps(old_targs)) + "\n\n")
+        f.close()
+
+    else:
+
+        symbol_string = ""
+        for symbol in target_symbols:
+            symbol_string += symbol + "^^"
+
+        buy_targets = "\nwould check the status of buy list >> " + str(json.dumps(buy_list))
+        buy_targets += "\nby checking option status for >> " + symbol_string
+        buy_targets += "\n"
+
+
+        print("writing target file to: " + fpath)
+
+        f = open(fpath, "a")
+        f.write(buy_targets)
+        f.close()
+
+        print("are we sending out an alert? " + str(alerting))
+
+        if alerting:
+          send_alert(fpath)
 
 
 
@@ -351,7 +471,7 @@ def main():
     if len(buy_list) > 0:
         # Loop over each target option buy to check the status and maybe buy some trash
         #
-        print("\n\nChecking status of target buys..")
+        print("\n\nWritng targets out to file..")
         write_to_buy_targets()
     else:
         print("\n\nThere were no target buys so not writing to target file...")
@@ -367,6 +487,8 @@ def main():
 
     print('me real max x is:  ' + str(max_x))
     print("me incr is:" + str(incr))
+    if incr == 0:
+        incr = 1
 
     for num in range(0, max_x, incr):
         #print("me list: " + str(me_list))
@@ -383,8 +505,13 @@ if __name__ == "__main__":
         main()
     elif (len(sys.argv) == 4):
         filename = sys.argv[1]
+        alerting = False
         bounce_min = int(sys.argv[2])
         max_price = float(sys.argv[3])
+
+        if max_price == 0.1:
+            alerting = True
+
         print("Filepath we're looking at: " + filename + " with min bounce: " + str(bounce_min) + " and max opt price: " + str(max_price))
         main()
     else:
