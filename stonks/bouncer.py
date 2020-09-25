@@ -429,7 +429,7 @@ def send_alert(fpath):
     server = smtplib.SMTP( "smtp.gmail.com", 587 )
     server.starttls()
 
-    server.login( 'bkuj15@gmail.com', 'Fresh0909*' )
+    server.login( 'testo.com', 'testoo*' )
 
     alert_str = "Ayoo we just found " + str(len(buy_list)) + " targets..\n"
     alert_str += "and wrote to file: " + fpath + "\n\n"
