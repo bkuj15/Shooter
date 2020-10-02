@@ -3,9 +3,13 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from ibapi.order_condition import Create, OrderCondition
 from ibapi.order import *
+import json
 
 import threading
 import time
+import sys
+
+
 
 class IBapi(EWrapper, EClient):
 	def __init__(self):
@@ -66,34 +70,36 @@ class IBapi(EWrapper, EClient):
 
 
 
-def orderCreate():
+def form_order(limit, amount):
     # Fills out the order object
     order1 = Order()    # Creates an order object from the import
     order1.action = "BUY"   # Sets the order action to buy
-    order1.orderType = "MKT"    # Sets order type to market buy
+    order1.orderType = "LMT"    # Sets order type to market buy
     order1.transmit = True
-    order1.totalQuantity = 10   # Setting a static quantity of 10
+    order1.totalQuantity = amount   # Setting a static quantity of 10
+    order1.lmtPrice = limit
     return order1   # Returns the order object
 
-def orderExecution(id):
-    #Places the order with the returned contract and order objects
-    contractObject = form_option_contract()
-    orderObject = orderCreate()
+def order_option(id, symbol, strike, type, limit, end_date, amount):
+    print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + type + "-" + end_date + "\n\n")
+
+	#Places the order with the returned contract and order objects
+    contractObject = form_option_contract(symbol, strike, type, end_date)
+    orderObject = form_order(limit, amount)
     nextID = id
     app.placeOrder(nextID, contractObject, orderObject)
     print("order was placed")
 
-def form_option_contract():
-	# Fills out the contract object
+def form_option_contract(symbol, strike, type, end_date):
     contract1 = Contract()  # Creates a contract object from the import
-    contract1.symbol = "AAPL"   # Sets the ticker symbol
+    contract1.symbol = symbol   # Sets the ticker symbol
     contract1.secType = "OPT"   # Defines the security type as stock
     contract1.currency = "USD"  # Currency is US dollars
     contract1.exchange = "SMART"
-    contract1.strike = 350
-    contract1.right = "C" # call not put
-    contract1.expiry = "20200717"
-    contract1.lastTradeDateOrContractMonth = "20200717"
+    contract1.strike = strike
+    contract1.right = type # call not put
+    contract1.expiry = end_date
+    contract1.lastTradeDateOrContractMonth = end_date
     # contract1.PrimaryExch = "NYSE"
 
     return contract1    # Returns the contract object
@@ -101,85 +107,76 @@ def form_option_contract():
 def run_loop():
 	app.run()
 
-def Stock_contract(symbol, secType='STK', exchange='SMART', currency='USD'):
-	''' custom function to create stock contract '''
-	contract = Contract()
-	contract.symbol = symbol
-	contract.secType = secType
-	contract.exchange = exchange
-	contract.currency = currency
-	return contract
-
-app = IBapi()
-app.connect('127.0.0.1', 7497, 123)
-
-app.nextorderId = None
-
-#Start the socket in a thread
-api_thread = threading.Thread(target=run_loop, daemon=True)
-api_thread.start()
-
-#Check if the API is connected via orderid
-while True:
-	if isinstance(app.nextorderId, int):
-		print('connected')
-		break
-	else:
-		print('waiting for connection')
-		time.sleep(1)
-
-#Create contracts
-google_contract = Stock_contract('IBM')
-
-#Update contract ID
-google_contract = app.get_contract_details(101, google_contract)
-print("me google contract: " + str(google_contract))
-
-
-time.sleep(3)
-
-print("trying to get option stuff..")
-
-contract = Contract()
-contract.symbol = "AAPL"
-contract.secType = "OPT"
-contract.exchange = "SMART"
-contract.currency = "USD"
-contract.lastTradeDateOrContractMonth = "202007"
-
-
-opt_contract = app.get_contract_details(212, contract)
-print("me opt contract: " + str(opt_contract))
-
-time.sleep(3)
-
-app.nextorderId += 1
-print("\n\ntrying to get account info..")
-app.get_accounts(app.nextorderId)
-
-
-time.sleep(5)
-
-app.nextorderId += 1
-option = form_option_contract()
-event = app.executeOption(app.nextorderId, option)
-print(str(event))
-
-
-time.sleep(5)
-print("doing option stuff now..")
-
-app.nextorderId += 1
-orderExecution(app.nextorderId)
-
-time.sleep(2)
-
-#Cancel order
-#print('cancelling order')
-#app.cancelOrder(app.nextorderId)
-
-#time.sleep(4)
 
 
 
-app.disconnect()
+
+## Main script stuff
+
+def main(quantity, target):
+
+	print("loading in as json: " + target)
+
+	order_json = json.loads(target)
+
+	strike = order_json["strike"]
+	limit = order_json["buy_price"]
+	symbol = order_json["symbol"]
+	op_type = "C"
+
+	amount = int(quantity)
+	end_date = "20201002"
+
+	if isinstance(limit, list):
+		limit = limit[0]
+
+	#print("Creating order for: " + symbol + "-" + str(strike) + "-" + op_type + ", with limit: " + str(limit))
+
+	app.connect('127.0.0.1', 7497, 123)
+
+	app.nextorderId = None
+
+	#Start the socket in a thread
+	api_thread = threading.Thread(target=run_loop, daemon=True)
+	api_thread.start()
+
+	#Check if the API is connected via orderid
+	while True:
+		if isinstance(app.nextorderId, int):
+			print('connected')
+			break
+		else:
+			print('waiting for connection')
+			time.sleep(1)
+
+
+	print("\n\nFake Making option order to buy " + quantity +  " order of " + symbol + "-" + str(strike) + "-" + op_type + " expiring " + end_date + "with limit: " + str(limit))
+
+	app.nextorderId += 1
+	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date, amount)
+
+	time.sleep(2)
+
+	#Cancel order
+	#print('cancelling order')
+	#app.cancelOrder(app.nextorderId)
+	#time.sleep(4)
+
+	print("\n\nFinished doing everything..")
+	app.disconnect()
+
+
+
+
+app = IBapi() # initialize the app for global use
+if __name__ == "__main__":
+
+    if (len(sys.argv) == 3):
+
+        target = sys.argv[1]
+        quantity = sys.argv[2]
+        main(quantity, target)
+
+    else:
+        print("Sike wrong number of args: " + str(len(sys.argv)))
+        print("Expected: symbol, strike, type (C or P), limit (maximum price we would buy option for), exp-date (i.e. 20200911), quantity")

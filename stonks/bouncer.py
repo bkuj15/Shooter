@@ -356,7 +356,7 @@ def write_to_buy_targets():
                     if old_targ["strike"] == targ["strike"] and old_targ["symbol"] == targ["symbol"]:
 
                         found = True
-                        update_line = "some target changed from " + str(old_targ) + " to " + str(targ) + "\n\n"
+                        update_line = "some target changed from " + str(json.dumps(old_targ)) + " to " + str(json.dumps(targ)) + "\n\n"
                         print(update_line)
 
                         bounce_diff = targ["bounces"] - old_targ["bounces"]
@@ -367,12 +367,14 @@ def write_to_buy_targets():
                         # or up bounces the count of bounces may be different
 
                         #print(update_line)
-                        f = open(fpath, "a")
-                        f.write(update_line)
-                        f.close()
+                        #f = open(fpath, "a")
+                        #f.write(update_line)
+                        #f.close()
 
                         if (bounce_diff > 2):
                             print("definitely should look at this update: " + str(targ))
+
+                            print("writing to update file: " + update_path)
 
                             # replace the old target in json so we can look for
                             # new updates but record the active bounce time and log in file
@@ -381,7 +383,8 @@ def write_to_buy_targets():
 
                             print("\n\nold targs after update: " + str(old_targs))
                             f = open(update_path, "a")
-                            f.write("\n\nwould check the status of buy list >>" + old_targs)
+                            prefix = str(datetime.now()) + " -- some update --> \n"
+                            f.write(prefix + update_line)
                             f.close()
 
                     index += 1
@@ -429,7 +432,7 @@ def send_alert(fpath):
     server = smtplib.SMTP( "smtp.gmail.com", 587 )
     server.starttls()
 
-    server.login( 'testo.com', 'testoo*' )
+    server.login( 'bkuj15@gmail.com', 'Fresh0909*' )
 
     alert_str = "Ayoo we just found " + str(len(buy_list)) + " targets..\n"
     alert_str += "and wrote to file: " + fpath + "\n\n"

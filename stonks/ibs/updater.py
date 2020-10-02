@@ -40,12 +40,23 @@ class IBapi(EWrapper, EClient):
 		super().managedAccounts(accountsList)
 		print("Account list:", accountsList)
 
+	def position(self, account: str, contract: Contract, position: float, avgCost: float):
+		super().position(account, contract, position, avgCost)
+		print("Some posiiton here... account:", account, "Contract:", contract.symbol, "Position: ", position, "avgCost:", avgCost)
+
+
 
 	def find_accounts(self, reqId):
 		self.reqManagedAccts()
 
 	def get_accounts(self, reqId):
 		self.reqAccountSummary(reqId, "All", "$LEDGER:ALL")
+
+	def fetch_order_status(self, reqId):
+		self.reqOpenOrders()
+
+	def fetch_postions(self, reqId):
+		self.reqPositions()
 
 
 	def executeOption(self, reqId, contract):
@@ -69,26 +80,27 @@ class IBapi(EWrapper, EClient):
 
 
 
-def form_order():
+def form_order(limit):
     # Fills out the order object
     order1 = Order()    # Creates an order object from the import
     order1.action = "BUY"   # Sets the order action to buy
-    order1.orderType = "MKT"    # Sets order type to market buy
+    order1.orderType = "LMT"    # Sets order type to market buy
     order1.transmit = True
     order1.totalQuantity = 10   # Setting a static quantity of 10
+    order1.lmtPrice = limit
     return order1   # Returns the order object
 
-def order_option(id, symbol, strike, type):
-    print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + type + "\n\n")
+def order_option(id, symbol, strike, type, limit, end_date):
+    print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + type + "-" + end_date + "\n\n")
 
 	#Places the order with the returned contract and order objects
-    contractObject = form_option_contract(symbol, strike, type)
-    orderObject = form_order()
+    contractObject = form_option_contract(symbol, strike, type, end_date)
+    orderObject = form_order(limit)
     nextID = id
     app.placeOrder(nextID, contractObject, orderObject)
     print("order was placed")
 
-def form_option_contract(symbol, strike, type):
+def form_option_contract(symbol, strike, type, end_date):
     contract1 = Contract()  # Creates a contract object from the import
     contract1.symbol = symbol   # Sets the ticker symbol
     contract1.secType = "OPT"   # Defines the security type as stock
@@ -96,8 +108,8 @@ def form_option_contract(symbol, strike, type):
     contract1.exchange = "SMART"
     contract1.strike = strike
     contract1.right = type # call not put
-    contract1.expiry = "20200717"
-    contract1.lastTradeDateOrContractMonth = "20200717"
+    contract1.expiry = end_date
+    contract1.lastTradeDateOrContractMonth = end_date
     # contract1.PrimaryExch = "NYSE"
 
     return contract1    # Returns the contract object
@@ -112,7 +124,7 @@ def run_loop():
 ## Main script stuff
 
 def main():
-	print("Ayooo playo")
+	#print("Creating order for: " + symbol + "-" + str(con_strike) + "-" + op_type + ", with limit: " + price_limit)
 
 	app.connect('127.0.0.1', 7497, 123)
 
@@ -132,21 +144,34 @@ def main():
 			time.sleep(1)
 
 
-	#app.nextorderId += 1
-	#print("\n\ntrying to get account info..")
-	#app.get_accounts(app.nextorderId)
-	#time.sleep(5)
 
-	symbol = "IBM"
-	strike = 116
-	op_type = "C"
-
-	print("\n\nMaking option order now for " + symbol + "-" + str(strike) + "-" + op_type)
-
+	print("checking current accounts...")
 	app.nextorderId += 1
-	order_option(app.nextorderId, symbol, strike, op_type)
+	app.find_accounts(app.nextorderId)
+	#order_option(app.nextorderId, symbol, strike, op_type, limit, end_date)
 
 	time.sleep(2)
+
+	while True:
+
+		time.sleep(3)
+		print("wating on some update..")
+
+	'''print("\n\ngetting current account info...")
+	app.nextorderId += 1
+	app.get_accounts(app.nextorderId)
+
+	time.sleep(2)
+
+	print("\n\nchecking current order status...")
+	app.nextorderId += 1
+	app.fetch_order_status(app.nextorderId)
+
+	time.sleep(2)
+
+	print("\n\nchecking current posiitons?...")
+	app.nextorderId += 1
+	app.fetch_postions(app.nextorderId)'''
 
 	#Cancel order
 	#print('cancelling order')
@@ -161,6 +186,19 @@ def main():
 
 app = IBapi() # initialize the app for global use
 if __name__ == "__main__":
-	print('Number of arguments:'+  str(len(sys.argv)) + 'arguments.')
-	print('Argument List:' + str(sys.argv))
+
 	main()
+
+	'''
+    if (len(sys.argv) == 5):
+        symbol = sys.argv[1]
+        strike = sys.argv[2]
+        typ = sys.argv[3]
+        limit = sys.argv[4]
+
+        main(symbol, strike, typ, limit)
+    else:
+        print("Sike wrong number of args: " + str(len(sys.argv)))
+        print("Expected: symbol, strike, type (C or P), limit (maximum price we would buy option for)")
+
+	'''

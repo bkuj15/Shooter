@@ -1,12 +1,14 @@
 #!/bin/bash
 #
 
-echo "Looking at results from last X min.."
+NOW=$(date '+%F %T')
+
+echo "Looking at results for upates within last 5 min at $NOW"
 DAY=`date +"%m-%d-%Y"`
 NEWEST=$(ls -t results/$DAY/*  -t | head -1)
 
 MIN_BOUNCE=0
-MAX_PRICE=0.1
+MAX_PRICE=0.3
 
 echo "newest results file: " $NEWEST
 
