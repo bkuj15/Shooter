@@ -25,70 +25,66 @@ def plot_stuff(label_list):
     j = 0
 
     print("max price for plot is: " + str(max_price) + " and min bounce: " + str(bounce_min))
+    label_x = 0.1
+
+    max_len = 1
+    for key in me_dict:
+        price_list = me_dict[key]
+
+        if len(price_list) > max_len:
+            max_len = len(price_list)
+
+
+    #incr = 0.5 # max num prices we collected / number of contracts
+    incr = max_len / len(me_dict)
 
     for key in me_dict:
-        #call = calls[num]
+
         me_list = me_dict[key]
 
-        label_x = 5#label_list[j]
-        #label_y = me_list[j]
-        label_y = 10
-
-
+        label_x += incr #label_list[j]
+        label_y = sum(me_list) / len(me_list)
         line_max = max(me_list)
 
         chart_info = bounces[j]
         chart_json = json.loads(chart_info)
 
         option = chart_json['option']
-        downbs = chart_json['down_bounces']
-        upbs = chart_json['up_bounces']
+        bs = chart_json['bounces']
 
-        linestyle = 'dotted'
+        linestyle = 'dashed'
         color = 'black'
         j += 1
 
-
-        #if (option == "AAPL-130.00"):
-        #    linestyle = 'solid'
-        #    color = 'orange'
-
+        min_highlight = 5
+        if bounce_min > 0:
+            min_highlight = bounce_min
 
 
-        if (downbs > 5):
-            linestyle = 'solid'
+        if (bs > min_highlight):
+            linestyle = 'dotted'
             color = 'blue'
-        if (downbs > 20):
-            linestyle = 'solid'
-            color = 'purple'
-        if (downbs > 30):
-            linestyle = 'solid'
+
+        '''if (bs > 10):
+            linestyle = 'dotted'
             color = 'green'
+        if (bs > 20):
+            linestyle = 'dotted'
+            color = 'purple'
+        if (bs > 30):
+            linestyle = 'dotted'
+            color = 'pink'
+'''
 
-        if (upbs > 5):
-            linestyle = 'solid'
-            color = 'yellow'
-        if (upbs > 20):
-            linestyle = 'solid'
-            color = 'orange'
-        if (upbs > 30):
-            linestyle = 'solid'
+        if (option == "DKNG-59.00"):
             color = 'red'
+            linestyle = 'solid'
 
-
-        #print("hmm this one to plot had downs: " + str(downbs) + ", ups: " + str(upbs) + " and color: " + color)
-        #print("would plot: " + str(me_list))
-        if line_max < max_price and (downbs >= bounce_min or upbs >= bounce_min):
+        if line_max < max_price: #and (downbs >= bounce_min or upbs >= bounce_min):
             plt.plot(me_list, label=option, linestyle=linestyle, color=color)
             plt.text(label_x, label_y, '{i}'.format(i=option), fontsize=6,  bbox=dict(facecolor='blue', alpha=0.5))
 
 
-
-
-        '''if line_max < max_price and (downbs > bounce_min or upbs > bounce_min):
-            plt.plot(me_list, label=option, linestyle=linestyle, color=color)
-            plt.text(label_x, label_y, '{i}'.format(i=option), fontsize=6,  bbox=dict(facecolor='blue', alpha=0.5))
-    '''
     plt.xlabel("Time")
     plt.ylabel("Call price")
     plt.legend(loc='upper right', prop={'size': 8})
@@ -107,25 +103,19 @@ def form_option_dict():
 
             stripped_line = line.strip()
 
-            if "price update" in stripped_line:
+            if "price update >>" in stripped_line:
                 print("some important line: " + stripped_line)
 
-                #parts = stripped_line.split(" ")
-                symbol_parts = stripped_line.split("symbol\": \"")[1]
-                strike_parts = stripped_line.split("strike\": \"")[1]
+                opt_str = stripped_line.split(">> ")[1]
+                opt_json = json.loads(opt_str)
 
-                symbol = symbol_parts.split("\"")[0]
-                strike = strike_parts.split("\"")[0]
-
-                print("the calls symbol: " + symbol)
-                print("the calls strike: " + strike)
+                symbol = opt_json["symbol"]
+                strike = opt_json["strike"]
 
                 call = symbol + "-" + strike
 
                 if call not in me_dict:
-
                     me_dict[call] = []
-                    #calls.append(call)
 
 
 # Second, loop over lines and add price to price lists
@@ -143,34 +133,20 @@ def parse_option_prices(add_flats=False):
 
                     print("\n\nwhole line for json: " + stripped_line)
 
-                    new_option = stripped_line.split("to: ")[1]
-                    opt_json = json.loads(new_option)
+                    opt_str = stripped_line.split(">> ")[1]
+                    opt_json = json.loads(opt_str)
 
                     symbol = opt_json['symbol']
                     strike = opt_json['strike']
                     price = opt_json['price']
 
-                    diff_parts = stripped_line.split("diff: ")[1]
-                    diff = diff_parts.split(",")[0]
-
-                    print("symbol: " + str(symbol) + ", strike: " + str(strike) + ", price: " + str(price) + ", diff " + diff)
+                    print("symbol: " + str(symbol) + ", strike: " + str(strike) + ", price: " + str(price))
 
                     price_fl = round(float(price), 2)
-                    diff_fl = round(float(diff), 2)
-
-
-                    print("the calls symbol: " + symbol)
-                    print("the calls strike: " + strike)
-
                     call = symbol + "-" + strike
                     price_len = len(me_dict[call])
 
-                    if add_flats:
-                        me_dict[call].append(price_fl)
-                    else:
-                        print("not adding flats so diff is: " + str(diff_fl))
-                        if diff_fl != 0.0 or price_len == 0:
-                            me_dict[call].append(price_fl)
+                    me_dict[call].append(price_fl)
 
                 except:
                     e = sys.exc_info()[0]
@@ -186,13 +162,13 @@ def check_for_bounces(prices, symbol):
     print("checking this list for bounces: " + str(prices))
     print("lenght of price list: " + str(len(prices)))
 
-
     most_price = max(prices, key=prices.count)
     print("max guy: " + str(most_price))
     after_price = False
 
-    up_bounces = 0
-    down_bounces = 0
+    chart_bounces = 0
+    upbs = 0
+    dbs = 0
 
     floors = set([])
     ceilings = set([])
@@ -205,26 +181,31 @@ def check_for_bounces(prices, symbol):
             after_price = False
 
             if down_bounce:
-                down_bounces += 1
+                chart_bounces += 1
                 #print("floor on bounce: " + str(price))
                 floors.add(price)
+                dbs += 1
             else:
-                up_bounces += 1
+                chart_bounces += 1
                 ceilings.add(price)
+                upbs += 1
 
         if price == most_price:
             after_price = True
 
 
     print("ceiling is: " + str(most_price) + ", with possible floors: " + str(floors))
+    is_up = upbs >= dbs
+
+    print("this chart is up? " + str(is_up) + " since upbs: " + str(upbs) + " and dbs: " + str(dbs))
     #return (up_bounces, down_bounces)
     chart_info = {
         'option': symbol,
-        'up_bounces': up_bounces,
-        'down_bounces': down_bounces,
+        'bounces': chart_bounces,
         'mode_price' : most_price,
         'floors': list(floors),
-        'ceilings': list(ceilings)
+        'ceilings': list(ceilings),
+        'up_bouncer': is_up
     }
 
     # convert into JSON:
@@ -234,46 +215,49 @@ def check_for_bounces(prices, symbol):
 
 
 
-def make_choices():
+def make_choices(max_buy_price):
+
 
     num_bounces = 5
+    if bounce_min > 0:
+        num_bounces = bounce_min
+    
 
     for bounce in bounces:
         chart_json = json.loads(bounce)
-        if (chart_json['down_bounces'] > num_bounces):
 
-            print("definitely should look at buying: " + str(bounce))
+        if (chart_json['bounces'] > num_bounces):
+            #print("maybe should look at buying: " + str(bounce))
             symbol = chart_json['option'].split("-")[0]
             strike = chart_json['option'].split("-")[1]
+
+            # if there are more up bounces?
+            if chart_json['up_bouncer']:
+                seller = chart_json['ceilings']
+                buyer = chart_json['mode_price']
+            else:
+                seller = chart_json['mode_price']
+                buyer = chart_json['floors']  
+
 
             target_buy = {
                 'symbol': symbol,
                 'strike': strike,
-                'buy_price': chart_json['floors'],
-                'sell_price': chart_json['mode_price'],
-                'bounces' : chart_json['down_bounces']
+                'buy_price': buyer,
+                'sell_price': seller,
+                'bounces' : chart_json['bounces']
             }
 
-            buy_list.append(target_buy)
-            target_symbols.add(symbol)
+            comp_pr  = 0
+            if isinstance(buyer, list):
+                comp_pr = min(buyer)
+            else:
+                comp_pr = buyer
 
-
-
-        if (chart_json['up_bounces'] > num_bounces):
-            print("definitely should look at buying: " + str(bounce))
-            symbol = chart_json['option'].split("-")[0]
-            strike = chart_json['option'].split("-")[1]
-
-            target_buy = {
-                'symbol': symbol,
-                'strike': strike,
-                'buy_price': chart_json['mode_price'],
-                'sell_price': chart_json['ceilings'],
-                'bounces' : chart_json['up_bounces']
-            }
-
-            buy_list.append(target_buy)
-            target_symbols.add(symbol)
+            if comp_pr <= max_buy_price:
+                print("definitely should look at buying: " + str(bounce))
+                buy_list.append(target_buy)
+                target_symbols.add(symbol)
 
 
 
@@ -324,8 +308,9 @@ def write_to_buy_targets():
 
     os.system("mkdir -p targets/" + day_string)
     fpath = "targets/" + day_string + "/target_list_" + chart_date + ".txt"
+    #fpath = "targets/" + day_string + "/targ_list.txt"
 
-    update_path = "targets/" + day_string + "/update_log_" + chart_date + ".txt"
+    update_path = "targets/" + day_string + "/update_log.txt"
 
     ### if the target file does not exist then just create it
     # and dump out targets in there
@@ -450,8 +435,11 @@ def main():
 
     form_option_dict()
     parse_option_prices(True)
+
+    
     print("all me calls to track: " + str(me_dict))
 
+    
 
     for key in me_dict:
         print("checking " + key + " action for bounces..")
@@ -459,14 +447,14 @@ def main():
         chart_json = json.loads(chart_info)
 
         print("chart info: " + str(chart_info))
-        print(key + " price list result -- up bounces: " + str(chart_json['up_bounces']) + ", down bounces: " + str(chart_json['down_bounces']) + "\n\n")
+        print(key + " price list result -- bounces: " + str(chart_json['bounces']) + "\n\n")
         #bounces.append((upbs, downbs))
         bounces.append(chart_info)
 
 
     # Loop over each options chart info to see if any are worth buying (i.e. bouncinnn)
     #
-    make_choices()
+    make_choices(max_price)
 
     print("me target buy list:" + str(buy_list))
 
@@ -497,6 +485,7 @@ def main():
         #print("me list: " + str(me_list))
         label_list.append(num)
     plot_stuff(label_list)
+    
 
 
 

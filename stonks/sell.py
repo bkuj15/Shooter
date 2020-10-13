@@ -3,11 +3,11 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from ibapi.order_condition import Create, OrderCondition
 from ibapi.order import *
-import json
 
 import threading
 import time
 import sys
+import json
 
 
 
@@ -73,10 +73,10 @@ class IBapi(EWrapper, EClient):
 def form_order(limit, amount):
     # Fills out the order object
     order1 = Order()    # Creates an order object from the import
-    order1.action = "BUY"   # Sets the order action to buy
+    order1.action = "SELL"   # Sets the order action to buy
     order1.orderType = "LMT"    # Sets order type to market buy
     order1.transmit = True
-    order1.totalQuantity = amount   # Setting a static quantity of 10
+    order1.totalQuantity = amount   # Setting a static quantity
     order1.lmtPrice = limit
     return order1   # Returns the order object
 
@@ -113,25 +113,24 @@ def run_loop():
 
 ## Main script stuff
 
-def main(quantity, target):
+def main(hold, quantity):
 
-	print("loading in as json: " + target)
+	print("loading in as json: " + hold)
 
-	order_json = json.loads(target)
+	hold_json = json.loads(hold)
 
-	strike = order_json["strike"]
-	limit = order_json["buy_price"]
-	symbol = order_json["symbol"]
+	strike = hold_json["strike"]
+	limit = hold_json["sell_price"]
+	symbol = hold_json["symbol"]
 	op_type = "C"
-
-	amount = int(quantity)
-	end_date = "20201002"
 
 	if isinstance(limit, list):
 		limit = limit[0]
 
-	#print("Creating order for: " + symbol + "-" + str(strike) + "-" + op_type + ", with limit: " + str(limit))
+	amount = int(quantity)
+	end_date = "20201016"
 
+	print("Connecting to api..")
 	app.connect('127.0.0.1', 7497, 123)
 
 	app.nextorderId = None
@@ -150,11 +149,11 @@ def main(quantity, target):
 			time.sleep(1)
 
 
-	print("\n\nFake Making option order to buy " + quantity +  " order of " + symbol + "-" + str(strike) + "-" + op_type + " expiring " + end_date + "with limit: " + str(limit))
+
+	print("\n\nFake Making option order to sell " + quantity +  " order of " + symbol + "-" + str(strike) + "-" + op_type + " expiring " + end_date + " with limit: " + str(limit))
 
 	app.nextorderId += 1
-	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date, amount)
-
+	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date, quantity)
 	time.sleep(2)
 
 	#Cancel order
@@ -171,12 +170,14 @@ def main(quantity, target):
 app = IBapi() # initialize the app for global use
 if __name__ == "__main__":
 
+    print("\n\nargs given to seller " + str(sys.argv))
+
     if (len(sys.argv) == 3):
 
-        target = sys.argv[1]
+        hold = sys.argv[1]
         quantity = sys.argv[2]
-        main(quantity, target)
 
+        main(hold, quantity)
     else:
         print("Sike wrong number of args: " + str(len(sys.argv)))
-        print("Expected: symbol, strike, type (C or P), limit (maximum price we would buy option for), exp-date (i.e. 20200911), quantity")
+        print("Expected: hold (in json), quantity")

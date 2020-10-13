@@ -3,6 +3,7 @@ from ibapi.wrapper import EWrapper
 from ibapi.contract import Contract
 from ibapi.order_condition import Create, OrderCondition
 from ibapi.order import *
+import json
 
 import threading
 import time
@@ -79,24 +80,24 @@ def form_order(limit, amount):
     order1.lmtPrice = limit
     return order1   # Returns the order object
 
-def order_option(id, symbol, strike, type, limit, end_date, amount):
-    print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + type + "-" + end_date + "\n\n")
+def order_option(reqId, symbol, strike, op_type, limit, end_date, amount):
+    print("**Attempting to order option: " + symbol + "-" + str(strike) + "-" + op_type + "-" + end_date + "\n\n")
 
 	#Places the order with the returned contract and order objects
-    contractObject = form_option_contract(symbol, strike, type, end_date)
+    contractObject = form_option_contract(symbol, strike, op_type, end_date)
     orderObject = form_order(limit, amount)
-    nextID = id
+    nextID = reqId
     app.placeOrder(nextID, contractObject, orderObject)
     print("order was placed")
 
-def form_option_contract(symbol, strike, type, end_date):
+def form_option_contract(symbol, strike, op_type, end_date):
     contract1 = Contract()  # Creates a contract object from the import
     contract1.symbol = symbol   # Sets the ticker symbol
     contract1.secType = "OPT"   # Defines the security type as stock
     contract1.currency = "USD"  # Currency is US dollars
     contract1.exchange = "SMART"
     contract1.strike = strike
-    contract1.right = type # call not put
+    contract1.right = op_type # call not put
     contract1.expiry = end_date
     contract1.lastTradeDateOrContractMonth = end_date
     # contract1.PrimaryExch = "NYSE"
@@ -112,8 +113,24 @@ def run_loop():
 
 ## Main script stuff
 
-def main(symbol, con_strike, op_type, price_limit, exp_date, quantity):
-	print("Creating order for: " + symbol + "-" + str(con_strike) + "-" + op_type + ", with limit: " + price_limit)
+def main(quantity, target):
+
+	print("loading in as json: " + target)
+
+	order_json = json.loads(target)
+
+	strike = order_json["strike"]
+	limit = order_json["buy_price"]
+	symbol = order_json["symbol"]
+	op_type = "C"
+
+	amount = int(quantity)
+	end_date = "20201016"
+
+	if isinstance(limit, list):
+		limit = min(limit) # set order limit to min of possible buy prices
+
+	#print("Creating order for: " + symbol + "-" + str(strike) + "-" + op_type + ", with limit: " + str(limit))
 
 	app.connect('127.0.0.1', 7497, 123)
 
@@ -133,14 +150,7 @@ def main(symbol, con_strike, op_type, price_limit, exp_date, quantity):
 			time.sleep(1)
 
 
-	strike = "%.2f" % float(con_strike)
-	limit = "%.2f" % float(price_limit)
-	amount = int(quantity)
-	end_date = exp_date
-
-	#strike = round(float(con_strike), 2)
-	#limit = round(float(price_limit), 2)
-	print("\n\nFake Making option order to buy " + quantity +  " order of " + symbol + "-" + str(strike) + "-" + op_type + " expiring " + end_date)
+	print("\n\nFake Making option order to buy " + quantity +  " order of " + symbol + "-" + str(strike) + "-" + op_type + " expiring " + end_date + "with limit: " + str(limit))
 
 	app.nextorderId += 1
 	order_option(app.nextorderId, symbol, strike, op_type, limit, end_date, amount)
@@ -161,15 +171,12 @@ def main(symbol, con_strike, op_type, price_limit, exp_date, quantity):
 app = IBapi() # initialize the app for global use
 if __name__ == "__main__":
 
-    if (len(sys.argv) == 7):
-        symbol = sys.argv[1]
-        strike = sys.argv[2]
-        typ = sys.argv[3]
-        limit = sys.argv[4]
-        exp_date = sys.argv[5]
-        quantity = sys.argv[6]
+    if (len(sys.argv) == 3):
 
-        main(symbol, strike, typ, limit, exp_date, quantity)
+        target = sys.argv[1]
+        quantity = sys.argv[2]
+        main(quantity, target)
+
     else:
         print("Sike wrong number of args: " + str(len(sys.argv)))
         print("Expected: symbol, strike, type (C or P), limit (maximum price we would buy option for), exp-date (i.e. 20200911), quantity")
